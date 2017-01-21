@@ -14,7 +14,7 @@ public class JellyAnimator : NSObject {
     
     fileprivate var presentation: JellyPresentation
     private weak var viewController : UIViewController?
-    
+    fileprivate let swipeInteractionController = SwipeInteractionController()
     
     /// ## designated initializer
     /// - Parameter presentation: a custom Presentation Object
@@ -29,6 +29,7 @@ public class JellyAnimator : NSObject {
     public func prepare(viewController: UIViewController) {
         viewController.modalPresentationStyle = .custom
         viewController.transitioningDelegate = self
+        self.swipeInteractionController.wireToViewController(viewController: viewController)
     }
 }
 
@@ -38,6 +39,9 @@ public class JellyAnimator : NSObject {
 /// it also provides the size and frame for the controller that wants to be presented
 extension JellyAnimator: UIViewControllerTransitioningDelegate {
     
+    public func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        return swipeInteractionController.interactionInProgress ? swipeInteractionController : nil
+    }
     
     /// Gets called from UIKit if presentatioStyle is custom and transitionDelegate is set
     public func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
