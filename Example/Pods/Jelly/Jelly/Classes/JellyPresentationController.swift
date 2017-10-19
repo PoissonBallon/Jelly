@@ -26,18 +26,21 @@ class JellyPresentationController : UIPresentationController {
     
     override func presentationTransitionWillBegin() {
         switch self.presentation.backgroundStyle {
-            case .blur(let effectStyle):
-                self.setupBlurView()
-                animateBlurView(effectStyle: effectStyle)
-            case .dimmed(_):
-                self.setupDimmingView()
-                animateDimmingView()
+        case .blur(let effectStyle):
+            self.setupBlurView()
+            animateBlurView(effectStyle: effectStyle)
+        case .dimmed(let alpha):
+            self.setupDimmingView(with: alpha)
+            animateDimmingView()
+        case .colored(let color):
+            self.setupColoringView(with: color)
+            animateDimmingView()
         }
     }
     
     private func animateBlurView(effectStyle: UIBlurEffectStyle) {
         let effect = UIBlurEffect(style: effectStyle)
-
+        
         guard let coordinator = presentedViewController.transitionCoordinator else {
             self.blurView.effect = effect
             return
@@ -85,22 +88,22 @@ class JellyPresentationController : UIPresentationController {
         
         var width : CGFloat = 0.0
         switch nonFullScreenPresentation.widthForViewController {
-            case .fullscreen:
-                width = parentSize.width
-            case .halfscreen:
-                width = parentSize.width / 2
-            case .custom(let value):
-                width = value
+        case .fullscreen:
+            width = parentSize.width
+        case .halfscreen:
+            width = parentSize.width / 2
+        case .custom(let value):
+            width = value
         }
         
         var height : CGFloat = 0.0
         switch nonFullScreenPresentation.heightForViewController {
-            case .fullscreen:
-                height = parentSize.height
-            case .halfscreen:
-                height = parentSize.height / 2
-            case .custom(let value):
-                height = value
+        case .fullscreen:
+            height = parentSize.height
+        case .halfscreen:
+            height = parentSize.height / 2
+        case .custom(let value):
+            height = value
         }
         
         return CGSize(width: width, height: height)
@@ -129,14 +132,14 @@ class JellyPresentationController : UIPresentationController {
         var shiftFrame : CGRect = .zero
         let size = getSizeValue(fromPresentation: shiftIn)
         switch shiftIn.direction {
-            case .left:
-                shiftFrame = CGRect(x: 0, y: 0, width: size, height: containerView!.bounds.size.height)
-            case .right:
-                shiftFrame = CGRect(x: containerView!.bounds.size.width - size, y: 0, width: size, height: containerView!.bounds.size.height)
-            case .top:
-                shiftFrame =  CGRect(x: 0, y: 0, width: containerView!.bounds.size.width, height: size)
-            case .bottom:
-                shiftFrame = CGRect(x: 0, y: containerView!.bounds.size.height - size , width: containerView!.bounds.size.width, height: size)
+        case .left:
+            shiftFrame = CGRect(x: 0, y: 0, width: size, height: containerView!.bounds.size.height)
+        case .right:
+            shiftFrame = CGRect(x: containerView!.bounds.size.width - size, y: 0, width: size, height: containerView!.bounds.size.height)
+        case .top:
+            shiftFrame =  CGRect(x: 0, y: 0, width: containerView!.bounds.size.width, height: size)
+        case .bottom:
+            shiftFrame = CGRect(x: 0, y: containerView!.bounds.size.height - size , width: containerView!.bounds.size.width, height: size)
         }
         limit(frame: &shiftFrame, withSize: containerView!.bounds.size)
         return shiftFrame
@@ -144,20 +147,20 @@ class JellyPresentationController : UIPresentationController {
     
     private func getSizeValue(fromPresentation presentation: JellyShiftInPresentation) -> CGFloat{
         switch  presentation.size {
-            case .custom(let value):
-                return value
-            case .halfscreen:
-                if presentation.direction.orientation() == .horizontal {
-                    return (self.containerView?.frame.size.width)! / 2
-                } else {
-                    return (self.containerView?.frame.size.height)! / 2
-                }
-            case .fullscreen:
-                if presentation.direction.orientation() == .horizontal {
-                    return (self.containerView?.frame.size.width)!
-                } else {
-                    return (self.containerView?.frame.size.height)!
-                }
+        case .custom(let value):
+            return value
+        case .halfscreen:
+            if presentation.direction.orientation() == .horizontal {
+                return (self.containerView?.frame.size.width)! / 2
+            } else {
+                return (self.containerView?.frame.size.height)! / 2
+            }
+        case .fullscreen:
+            if presentation.direction.orientation() == .horizontal {
+                return (self.containerView?.frame.size.width)!
+            } else {
+                return (self.containerView?.frame.size.height)!
+            }
         }
     }
     
@@ -213,22 +216,22 @@ class JellyPresentationController : UIPresentationController {
             
             // Prepare Horizontal Alignment
             switch alignablePresentation.horizontalAlignment {
-                case .center:
-                    frame.origin.x = (containerView!.frame.size.width/2)-(frame.size.width/2)
-                case .left:
-                    frame.origin.x = 0
-                case .right:
-                    frame.origin.x = (containerView?.frame.size.width)! - frame.size.width
+            case .center:
+                frame.origin.x = (containerView!.frame.size.width/2)-(frame.size.width/2)
+            case .left:
+                frame.origin.x = 0
+            case .right:
+                frame.origin.x = (containerView?.frame.size.width)! - frame.size.width
             }
             
             // Prepare Vertical Alignment
             switch alignablePresentation.verticalAlignemt {
-                case .center:
-                    frame.origin.y = (containerView!.frame.size.height/2)-(frame.size.height/2)
-                case .top:
-                    frame.origin.y = 0
-                case .bottom:
-                    frame.origin.y = (containerView?.frame.size.height)! - frame.size.height
+            case .center:
+                frame.origin.y = (containerView!.frame.size.height/2)-(frame.size.height/2)
+            case .top:
+                frame.origin.y = 0
+            case .bottom:
+                frame.origin.y = (containerView?.frame.size.height)! - frame.size.height
             }
         } else {
             frame.origin.x = (containerView!.frame.size.width/2)-(frame.size.width/2)
@@ -261,11 +264,11 @@ class JellyPresentationController : UIPresentationController {
             NSLayoutConstraint.activate(
                 NSLayoutConstraint.constraints(withVisualFormat: "H:|[blurView]|",
                                                options: [], metrics: nil, views: ["blurView": blurView]))
-
+            
         }
     }
     
-    func setupDimmingView(withAlpha alpha: CGFloat = 0.5) {
+    func setupDimmingView(with alpha: CGFloat = 0.5) {
         
         dimmingView.translatesAutoresizingMaskIntoConstraints = false
         dimmingView.alpha = 0.0
@@ -295,7 +298,41 @@ class JellyPresentationController : UIPresentationController {
                 NSLayoutConstraint.constraints(withVisualFormat: "H:|[dimmingView]|",
                                                options: [], metrics: nil, views: ["dimmingView": dimmingView]))
         }
-
+        
+        
+    }
+    
+    func setupColoringView(with color: UIColor = .white) {
+        
+        dimmingView.translatesAutoresizingMaskIntoConstraints = false
+        dimmingView.alpha = 0.0
+        dimmingView.backgroundColor = color
+        
+        let recognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(recognizer:)))
+        dimmingView.addGestureRecognizer(recognizer)
+        
+        containerView?.insertSubview(dimmingView, at: 0)
+        
+        guard let containerView = containerView else {
+            return
+        }
+        
+        if #available(iOS 9.0, *) {
+            NSLayoutConstraint.activate([dimmingView.leftAnchor.constraint(equalTo: containerView.leftAnchor)])
+            NSLayoutConstraint.activate([dimmingView.rightAnchor.constraint(equalTo: containerView.rightAnchor)])
+            NSLayoutConstraint.activate([dimmingView.topAnchor.constraint(equalTo: containerView.topAnchor)])
+            NSLayoutConstraint.activate([dimmingView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)])
+        } else {
+            // Fallback on earlier versions
+            // Fallback on earlier versions
+            NSLayoutConstraint.activate(
+                NSLayoutConstraint.constraints(withVisualFormat: "V:|[dimmingView]|",
+                                               options: [], metrics: nil, views: ["dimmingView": dimmingView]))
+            NSLayoutConstraint.activate(
+                NSLayoutConstraint.constraints(withVisualFormat: "H:|[dimmingView]|",
+                                               options: [], metrics: nil, views: ["dimmingView": dimmingView]))
+        }
+        
         
     }
     
