@@ -28,7 +28,8 @@ public struct JellyConstants {
     public enum BackgroundStyle {
         case dimmed(alpha: CGFloat)
         case blur(effectStyle: UIBlurEffectStyle)
-    }
+        case colored(color: UIColor)
+  }
     
     /// Will the ViewController be shown or dismissed?
     public enum PresentationType {
